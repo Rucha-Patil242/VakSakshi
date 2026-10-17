@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VaakSakshi – Voice authenticity & fraud triage</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1024;--c:#131a35;--c2:#1a2347;--ln:#ffffff1a;--ink:#f1f3ff;--mut:#9aa3c7;--ok:#3ddc97;--warn:#ffc247;--bad:#ff5d73;--acc:#ff9933;--jade:#2ec4b6}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.6 'Hanken Grotesk',system-ui,sans-serif;background:radial-gradient(700px 420px at 90% -5%,#ff993326,transparent),radial-gradient(700px 500px at -5% 20%,#2ec4b61f,transparent),var(--bg);color:var(--ink);min-height:100vh}
+h1,h2,h3,.logo{font-family:Fraunces,Georgia,serif}
+.w{max-width:1080px;margin:0 auto;padding:0 20px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.logo{font-size:23px;font-weight:800;letter-spacing:-.3px}.logo small{font:500 13px 'Hanken Grotesk';color:var(--acc);margin-left:8px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--ink)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center;padding:34px 0 44px}
+.hero h1{font-size:clamp(34px,5.4vw,58px);line-height:1.04;font-weight:800;letter-spacing:-1.5px}
+.hero p{color:var(--mut);margin:16px 0 20px;max-width:46ch;font-size:16px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}.pills span{border:1px solid var(--ln);border-radius:99px;padding:4px 12px;font-size:13px;color:var(--mut)}
+.stand{background:var(--c);border:1px solid var(--ln);border-radius:20px;padding:20px}
+.stand svg{width:100%;display:block}.stand p{font-size:13px;margin:10px 0 0}
+.card{background:var(--c);border:1px solid var(--ln);border-radius:16px;padding:20px;margin-bottom:16px}
+.card h2{font-size:20px;margin-bottom:12px}.card h3{font-size:17px;margin-bottom:10px}
+.grid,.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid>.card,.two>.card{margin:0}.two{margin-bottom:16px}
+.drop{border:1.5px dashed #ffffff40;border-radius:14px;padding:22px;text-align:center;cursor:pointer;transition:.2s;color:var(--mut)}
+.drop:hover,.drop.on{border-color:var(--acc);background:#ff993314;color:var(--ink)}
+.drop b{display:block;color:var(--ink);font-size:16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button,.btn{font:600 14px 'Hanken Grotesk';border:1px solid var(--ln);background:var(--c2);color:var(--ink);padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--acc)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+#mic.on{background:var(--bad);border-color:var(--bad)}
+#go{width:100%;margin:6px 0 16px;padding:15px;font-size:17px;background:linear-gradient(90deg,var(--acc),#ffb347);color:#1b1200;border:0;border-radius:14px}
+#go:disabled{opacity:.4;cursor:not-allowed}
+.info{margin-top:12px;font-size:13px;color:var(--mut)}
+.flags label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:14px}
+.flags label:hover{background:#ffffff0a}.flags input{margin-top:4px;accent-color:var(--acc)}
+textarea{width:100%;min-height:96px;margin-top:10px;background:#0b1024;color:var(--ink);border:1px solid var(--ln);border-radius:10px;padding:10px;font:14px/1.5 inherit;resize:vertical}
+.err{background:#ff5d7322;border:1px solid var(--bad);color:#ffd5db;padding:12px 16px;border-radius:12px;margin-bottom:16px}
+.verdict{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-left:6px solid var(--mut)}
+.verdict.ok{border-left-color:var(--ok)}.verdict.bad{border-left-color:var(--bad)}.verdict.warn{border-left-color:var(--warn)}
+.verdict h2{font-size:38px;margin:0}.verdict p{color:var(--mut);max-width:56ch;margin-top:6px}
+.badges{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}.badges div{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mut)}
+.chip{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:600;font-size:13px;color:#10142a;width:fit-content}
+.chip.ok{background:var(--ok)}.chip.warn{background:var(--warn)}.chip.bad{background:var(--bad)}.chip.na{background:#5b6491;color:#fff}
+.tl{display:flex;gap:3px;height:38px;margin-bottom:8px}.tl div{flex:1;border-radius:6px;font-size:11px;display:flex;align-items:center;justify-content:center;color:#10142a;font-weight:600}
+.tl .ok{background:var(--ok)}.tl .bad{background:var(--bad)}.tl .warn{background:var(--warn)}.tl .na{background:#5b6491;color:#fff}
+.leg{font-size:12px;color:var(--mut);margin-bottom:12px}canvas{width:100%;display:block;border-radius:10px;margin-top:8px;background:#080c1c}
+.det{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--ln);font-size:14px}.det:last-child{border:0}.det small{color:var(--mut);display:block}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:7px 4px;border-bottom:1px solid var(--ln)}tr.off{opacity:.38}td:last-child{text-align:right;font-weight:600}
+mark{border-radius:4px;padding:0 3px;color:#10142a}.m-urgency{background:var(--warn)}.m-secrecy{background:#c4a7ff}.m-payment{background:var(--jade)}.m-credential{background:var(--bad)}.m-authority{background:#7db4ff}
+.tx{font-size:14px;line-height:1.9;margin-bottom:8px}.hits span{font-size:12px;margin-right:8px;color:var(--mut)}
+ol.pb{padding-left:20px}ol.pb li{margin:7px 0}.msg{background:#0b1024;border:1px solid var(--ln);border-radius:10px;padding:12px;font-size:14px;margin:10px 0}
+.trace li{list-style:none;font-size:13px;padding:5px 0;border-bottom:1px solid var(--ln);animation:in .4s both}.trace b{color:var(--jade);display:inline-block;width:78px}
+@keyframes in{from{opacity:0;transform:translateX(-8px)}}
+.lim{font-size:13px;color:var(--mut)}
+.vrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--ln);flex-wrap:wrap;font-size:14px}
+footer{text-align:center;color:var(--mut);font-size:13px;padding:30px 0 50px}
+@media(max-width:800px){.hero,.grid,.two{grid-template-columns:1fr}.verdict h2{font-size:30px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{:root{--bg:#fff;--c:#fff;--c2:#fff;--ink:#000;--mut:#444;--ln:#ccc}body{background:#fff}.noprint,.hero,.top,#in,#go,footer{display:none!important}canvas{background:#fff}}
+</style></head><body><div class="w">
+<div class="top"><div class="logo">VaakSakshi<small>वाक्‌साक्षी · witness of the spoken word</small></div><a href="#vault">Case vault</a></div>
+<section class="hero"><div><h1>Hear the voice.<br>Question the instruction.</h1>
+<p>A voice that sounds like your manager can still be a fraud. VaakSakshi tests the audio, reads what is being asked, and tells you what to verify before any money moves.</p>
+<div class="pills"><span>Likely Genuine / Suspicious / Inconclusive</span><span>Rule-based risk, no fake percentages</span><span>Hinglish scam keywords</span><span>Runs in your browser</span></div></div>
+<div class="stand"><svg viewBox="0 0 400 120" aria-hidden="true"><g id="hw"></g></svg><p style="color:var(--mut)">One sentence in this recording is synthetic. VaakSakshi checks every 2-second window, so it can find it.</p></div></section>
+
+<main id="in"><div class="grid">
+<div class="card"><h2>1. Choose the recording</h2>
+<label class="drop" id="dz"><input id="file" type="file" accept=".wav,audio/*" hidden><b>Drop a WAV file here</b>or click to browse</label>
+<div class="row"><button id="mic">● Record voice</button><button data-s="real">Sample: genuine</button><button data-s="fake">Sample: cloned</button><button data-s="part">Sample: partly edited</button></div>
+<div class="info" id="fi">No audio loaded yet. Organiser samples can be uploaded as WAV.</div></div>
+<div class="card"><h2>2. What is being asked? <span class="lim" style="font:400 13px 'Hanken Grotesk'">(optional, detected from speech)</span></h2><div class="flags">
+<label><input type="checkbox" id="c_urgency"><span>Urgency or pressure ("do it now", "don't tell anyone")</span></label>
+<label><input type="checkbox" id="c_money"><span>Money transfer, OTP or credentials requested</span></label>
+<label><input type="checkbox" id="c_newben"><span>New beneficiary or unusual amount</span></label>
+<label><input type="checkbox" id="c_channel"><span>Unexpected channel (voice note, unknown number)</span></label></div>
+<textarea id="tx" placeholder="Filled automatically from your recording. You can also paste or edit it. Hindi, Hinglish and English scam words are understood."></textarea></div></div>
+<button id="go" disabled>Analyse voice</button><div class="err" id="err" hidden></div></main>
+
+<div id="out" hidden></div>
+
+<section id="vault"><div class="card"><h2>Case vault</h2><p class="lim" style="margin-bottom:8px">Every analysis is saved in this browser as an audit trail. Swap the save function for Supabase or Firebase to share cases across a team.</p><div id="vl"></div><div class="row"><button id="clr">Clear vault</button></div></div></section>
+<footer>VaakSakshi · built for a hackathon · results are indicators, not proof</footer></div>
+
+<script>
+const $=s=>document.querySelector(s),AC=window.AudioContext||window.webkitAudioContext,SR=16000;
+let buf=null,fname='',origSR=null,R=null,asr=null,autoTx=false;
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const err=m=>{const e=$('#err');e.textContent=m||'';e.hidden=!m};
+$('#hw').innerHTML=Array.from({length:80},(_,i)=>{const h=8+Math.abs(Math.sin(i*.7)*Math.cos(i*.23))*44*(i>34&&i<52?.55:1),bad=i>34&&i<52;return`<rect x="${i*5}" y="${60-h}" width="3" height="${h*2}" rx="1.5" fill="${bad?'#ff5d73':'#2ec4b6'}"/>`}).join('');
+
+/* ---------- audio loading ---------- */
+async function loadBlob(b,name){err('');try{
+ if(b.size>30e6)throw 0;const ab=await b.arrayBuffer(),dv=new DataView(ab);
+ origSR=ab.byteLength>28&&dv.getUint32(0)==0x52494646?dv.getUint32(24,true):null;
+ const c=new AC({sampleRate:SR}),d=await c.decodeAudioData(ab.slice(0));c.close();
+ buf=d.getChannelData(0).slice(0,SR*30);if(buf.length<SR*.5)throw 1;if(autoTx){$('#tx').value='';autoTx=false}setInfo(name)}
+ catch(e){buf=null;$('#go').disabled=true;err(e===1?'This recording is shorter than half a second, so nothing can be analysed. Please upload a longer WAV file.':'This file could not be read. It may be corrupted, empty or not an audio file. Please upload a valid WAV recording under 30 MB.')}}
+function setInfo(n){fname=n;$('#fi').textContent=`Loaded ${n} · ${(buf.length/SR).toFixed(1)} s${origSR?' · '+origSR+' Hz source':''}${buf.length==SR*30?' · trimmed to the first 30 s':''}`;$('#go').disabled=false}
+$('#file').onchange=e=>e.target.files[0]&&loadBlob(e.target.files[0],e.target.files[0].name);
+const dz=$('#dz');['dragover','dragenter'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.add('on')}));
+['dragleave','drop'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.remove('on')}));
+dz.addEventListener('drop',e=>e.dataTransfer.files[0]&&loadBlob(e.dataTransfer.files[0],e.dataTransfer.files[0].name));
+let mr,sp,ch=[];
+$('#mic').onclick=async()=>{const m=$('#mic');if(mr&&mr.state=='recording'){mr.stop();try{sp&&sp.stop()}catch(e){}return}
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:true});ch=[];mr=new MediaRecorder(st);mr.ondataavailable=e=>ch.push(e.data);
+ mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());m.classList.remove('on');m.textContent='● Record voice';loadBlob(new Blob(ch),'microphone-recording')};
+ mr.start();m.classList.add('on');m.textContent='■ Stop recording';
+ const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(S){sp=new S();sp.lang='en-IN';sp.continuous=true;sp.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)$('#tx').value+=e.results[i][0].transcript+' '};sp.start()}}
+ catch(e){err('Microphone access was blocked. Allow microphone permission in the browser, or upload a WAV file instead.')}};
+
+/* ---------- built-in samples (synthetic test signals) ---------- */
+function voice(sec,syn){const n=sec*SR,o=new Float32Array(n);let ph=0,jit=0,env=0;
+ for(let i=0;i<n;i++){const t=i/SR;if(i%160==0)jit=syn?0:(Math.random()-.5)*6;
+  const f=syn?140+.4*Math.sin(t*1.7):120+18*Math.sin(1.3*t)+9*Math.sin(5.1*t)+jit;ph+=2*Math.PI*f/SR;
+  const talk=syn?.6:(Math.sin(.9*t+1)>-.55?Math.pow(Math.max(0,Math.sin(2*Math.PI*3.1*t)),.6):0);
+  let s=0;const H=Math.floor((syn?3800:7200)/f);for(let k=1;k<=H;k++)s+=Math.sin(k*ph)/k;
+  env+=(talk-env)*.01;o[i]=.25*env*s+(Math.random()-.5)*2*(syn?.0004:.008+(talk<.05?.02:0))}return o}
+const SAMP={real:{n:'sample-genuine.wav',p:[[8,0]],t:'Hi, are we still meeting for lunch tomorrow? Let me know when you are free.'},
+ fake:{n:'sample-cloned.wav',p:[[8,1]],t:'Abhi jaldi 50,000 rupees bhej do. OTP bata dena. Kisi ko mat batana.'},
+ part:{n:'sample-partly-edited.wav',p:[[4,0],[4,1]],t:'Hello, this is your manager. Transfer 2 lakh rupees to this new account right now and do not tell anyone.'}};
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{err('');const s=SAMP[b.dataset.s],P=s.p.map(([a,y])=>voice(a,y)),o=new Float32Array(P.reduce((a,p)=>a+p.length,0));let k=0;P.forEach(p=>{o.set(p,k);k+=p.length});buf=o;origSR=16000;$('#tx').value=s.t;autoTx=false;setInfo(s.n)});
+
+/* ---------- DSP ---------- */
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}
+ for(let l=2;l<=n;l<<=1){const a=-2*Math.PI/l,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=l){let cr=1,ci=0;for(let k=0;k<l/2;k++){const u=i+k,v=u+l/2,xr=re[v]*cr-im[v]*ci,xi=re[v]*ci+im[v]*cr;re[v]=re[u]-xr;im[v]=im[u]-xi;re[u]+=xr;im[u]+=xi;[cr,ci]=[cr*wr-ci*wi,cr*wi+ci*wr]}}}}
+const HW=Float32Array.from({length:512},(_,i)=>.5-.5*Math.cos(2*Math.PI*i/511));
+function spec(x,i){const re=new Float32Array(512),im=new Float32Array(512);for(let j=0;j<512;j++)re[j]=(x[i+j]||0)*HW[j];fft(re,im);return re.map((v,k)=>v*v+im[k]*im[k])}
+function rmsF(x,a=0,b=x.length){const r=[];for(let i=a;i+512<=b;i+=512){let s=0;for(let j=0;j<512;j++)s+=x[i+j]*x[i+j];r.push(Math.sqrt(s/512))}return r}
+function f0(x,i){const mn=Math.floor(SR/400),mx=Math.floor(SR/70);let e=0,best=0,bl=0;for(let j=0;j<512;j++)e+=x[i+j]*x[i+j];if(!e)return 0;
+ for(let l=mn;l<=mx;l++){let s=0;for(let j=0;j<512-l;j++)s+=x[i+j]*x[i+j+l];if(s>best){best=s;bl=l}}return best/e>.4?SR/bl:0}
+const mean=a=>a.reduce((x,y)=>x+y,0)/(a.length||1),sd=a=>{const m=mean(a);return Math.sqrt(mean(a.map(v=>(v-m)**2)))};
+
+function quality(x){const r=rmsF(x),mx=Math.max(...r),dur=x.length/SR,notes=[];let pen=0;
+ const sil=r.filter(v=>v<.05*mx).length/r.length;let clip=0;for(let i=0;i<x.length;i++)if(Math.abs(x[i])>.99)clip++;clip/=x.length;
+ let snr=null;if(sil>.05){const s=[...r].sort((a,b)=>a-b),n=mean(s.slice(0,Math.max(1,s.length/10|0))),g=mean(s.slice(s.length>>1));snr=20*Math.log10(g/(n||1e-6))}
+ const add=(p,t)=>{pen+=p;notes.push(t)};
+ if(mx<.004)add(5,'recording is almost silent');if(dur<3)add(3,'very short audio ('+dur.toFixed(1)+' s)');else if(dur<6)add(1,'short audio');
+ if(sil>.6)add(2,'mostly silence ('+(sil*100|0)+'%)');else if(sil>.4)add(1,'a lot of silence');
+ if(clip>.01)add(1,'clipping detected');if(origSR&&origSR<12000)add(3,'low sample rate ('+origSR+' Hz, phone/codec quality)');
+ if(snr!==null&&snr<10)add(2,'heavy background noise (SNR about '+snr.toFixed(0)+' dB)');else if(snr!==null&&snr<20)add(1,'moderate noise');
+ return{dur,sil,clip,snr,sr:origSR,nb:!!origSR&&origSR<12000,rel:pen==0?'High':pen<=2?'Medium':'Low',notes}}
+
+function segments(x,nb){const gm=Math.max(...rmsF(x)),L=SR*2,out=[];
+ for(let a=0;a<x.length;a+=L){const b=Math.min(a+L,x.length);if(b-a<SR)break;
+  const rm=[],vo=[];for(let i=a;i+512<=b;i+=512){let s=0;for(let j=0;j<512;j++)s+=x[i+j]*x[i+j];const r=Math.sqrt(s/512);rm.push(r);if(r>.3*gm)vo.push(i)}
+  const F={pro:null,spec:null,dyn:null},m={};m.voiced=vo.length/rm.length;
+  if(vo.length>=6){const p=vo.map(i=>f0(x,i)).filter(v=>v>0);if(p.length>=6){const st=p.map(v=>12*Math.log2(v));m.pstd=sd(st);let d=0;for(let i=1;i<p.length;i++)d+=Math.abs(p[i]-p[i-1])/p[i];m.jit=d/(p.length-1);F.pro=m.pstd<.8||m.jit<.004}}
+  if(vo.length>=3&&!nb){let lo=0,hi=0;vo.forEach(i=>{const P=spec(x,i);for(let k=10;k<128;k++)lo+=P[k];for(let k=144;k<240;k++)hi+=P[k]});m.hf=10*Math.log10(hi/lo+1e-12);F.spec=m.hf<-32}
+  if(m.voiced>.2&&rm.length>=8){m.cv=sd(rm)/mean(rm);F.dyn=m.cv<.2}
+  const av=Object.values(F).filter(v=>v!==null),fl=av.filter(v=>v).length;
+  out.push({t0:a/SR,t1:b/SR,f:F,m,st:av.length<2?'na':fl>=2?'bad':fl==1?'warn':'ok'})}return out}
+function decide(s,q){const u=s.filter(v=>v.st!='na'),bad=u.filter(v=>v.st=='bad').length,warn=u.filter(v=>v.st=='warn').length;
+ if(q.rel=='Low')return{v:'Inconclusive',why:['Reliability is Low: '+q.notes.join(', ')+'.','Get a longer, cleaner, original-quality recording and run it again.']};
+ if(!u.length)return{v:'Inconclusive',why:['Too little clear speech to measure. Re-record with a closer microphone.']};
+ if(bad)return{v:'Suspicious',why:[`${bad} of ${u.length} segments show synthetic-speech indicators where at least two detectors agree.`]};
+ if((bad+warn)/u.length>=.4)return{v:'Inconclusive',why:['Detectors disagree, so the evidence is mixed. Do not treat this as safe or as fake.']};
+ return{v:'Likely Genuine',why:['No segment was flagged by two or more detectors. This is an absence of indicators, not proof of authenticity.']}}
+
+/* ---------- transcript ---------- */
+const PAT={urgency:/\b(urgent(ly)?|immediately|right now|asap|at once|hurry|abhi|jaldi|turant|foran|quickly|quick)\b|तुरंत|जल्दी|अभी/gi,
+ secrecy:/(don'?t tell|do not tell|keep (it )?(a )?(secret|confidential)|between us|kisi ko (mat|nahi)|mat batana|secret|किसी को (मत|नहीं)|मत बताना)/gi,
+ payment:/\b(transfer|send money|payment|upi|neft|rtgs|imps|account|rupees|rupee|lakh|crore|bhej(o|na)?|paisa|paise|wire|gift ?card|beneficiary|money)\b|₹|पैसे|पैसा|भेज|ट्रांसफर|खाता|रुपये|लाख/gi,
+ credential:/\b(otp|o t p|pin|password|cvv|passcode|aadhaar|card number)\b|ओटीपी|पिन|पासवर्ड/gi,
+ authority:/\b(ceo|cfo|manager|boss|bank|rbi|police|cbi|customs|officer|director|sahab)\b|मैनेजर|बैंक|पुलिस|साहब/gi};
+function scan(t){const hits={},sp=[];for(const k in PAT){hits[k]=[...t.matchAll(PAT[k])].map(m=>{sp.push([m.index,m.index+m[0].length,k]);return m[0]})}
+ sp.sort((a,b)=>a[0]-b[0]);let h='',p=0;sp.forEach(([a,b,k])=>{if(a<p)return;h+=esc(t.slice(p,a))+`<mark class="m-${k}">${esc(t.slice(a,b))}</mark>`;p=b});return{hits,html:h+esc(t.slice(p))}}
+
+/* ---------- risk rules ---------- */
+function risk(v,partial,c,h){const any=k=>h[k].length>0,money=c.money||any('payment')||any('credential');
+ const T=[['Voice indicators are Suspicious',3,v=='Suspicious'],['Voice indicators are Inconclusive',1,v=='Inconclusive'],['Only part of the audio is flagged (possible splice)',1,partial],
+ ['Urgency or pressure',1,c.urgency||any('urgency')],['Secrecy requested',1,any('secrecy')],['Money transfer, OTP or credentials requested',2,money],
+ ['New beneficiary or unusual amount',1,c.newben],['Unexpected channel',1,c.channel],['Authority impersonation wording',1,any('authority')]];
+ const p=T.reduce((a,r)=>a+(r[2]?r[1]:0),0);return{level:p>=5?'High':p>=2?'Medium':'Low',points:p,money,rules:T.map(r=>({rule:r[0],points:r[1],fired:!!r[2]}))}}
+function playbook(v,rk){const s=[];
+ if(v=='Inconclusive')s.push('Get a longer (10 s or more), quieter, original-quality recording and analyse it again.');
+ if(v=='Likely Genuine'&&rk.level=='Low')return['No strong warning signs were found. Follow your normal approval process.'];
+ s.push('Pause. Do not transfer money, share an OTP or PIN, or click any link because of this message.',
+ 'Call back on a number you already have saved, or the official bank or company number. Never use the number that contacted you.',
+ 'Ask for the pre-agreed safe word, or a question only the real person can answer.',
+ 'Require a second approver for transfers above your limit and record who approved it.',
+ 'OTP, PIN, CVV and passwords are never shared over voice, whoever is asking.');
+ if(rk.level=='High')s.push('Report it: National Cyber Crime Helpline 1930 or cybercrime.gov.in. Tell your bank fraud desk now so they can block or recall the payment.');return s}
+const MSG='Hi, I received a voice message asking me to act on a payment. Before I do anything, please confirm it on our usual number and share our safe word. Our policy needs a second approver for transfers. Thanks.';
+
+/* ---------- main run ---------- */
+async function loadASR(){let m,last;
+ for(const u of['https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2','https://esm.sh/@xenova/transformers@2.17.2']){try{m=await import(u);break}catch(e){last=e}}
+ if(!m)throw last;m.env.allowLocalModels=false;
+ for(const h of['https://huggingface.co/','https://hf-mirror.com/']){try{m.env.remoteHost=h;return await m.pipeline('automatic-speech-recognition','Xenova/whisper-tiny')}catch(e){last=e}}
+ throw last}
+async function transcribe(){if($('#tx').value.trim())return autoTx?'transcript from speech-to-text reused':'transcript supplied by user';
+ const b=$('#go');try{b.textContent='Loading speech model (first time only, about 40 MB)…';
+ if(!asr)asr=await loadASR();
+ b.textContent='Transcribing the recording…';const o=await asr(buf,{chunk_length_s:30}),t=(o.text||'').trim();
+ $('#tx').value=t;autoTx=true;return t?'Whisper transcribed '+t.split(/\s+/).length+' words':'no speech recognised in the recording'}
+ catch(e){console.error(e);const why=location.protocol=='file:'?'Open the site through http://localhost or GitHub Pages, not by double-clicking the file.':'Check your internet connection or try another network.';
+ err('Speech-to-text could not load ('+(e.message||e)+'). '+why+' The audio was still analysed; paste the transcript manually to add the scam-word rules.');return'speech-to-text failed: '+(e.message||e)}}
+$('#go').onclick=()=>{const b=$('#go');b.disabled=true;b.textContent='Analysing…';setTimeout(async()=>{try{await run()}catch(e){console.error(e);err('The analysis failed unexpectedly. Try a different recording.')}b.disabled=false;b.textContent='Analyse voice'},60)};
+async function run(){err('');const tr=[],T=(a,m)=>tr.push([a,m]);const sx=await transcribe();T('Speech',sx);$('#go').textContent='Analysing…';
+ T('Intake',`${fname}, ${(buf.length/SR).toFixed(1)} s${origSR?', '+origSR+' Hz source':''}`);
+ const q=quality(buf);T('Quality',`reliability ${q.rel}; ${q.notes.join('; ')||'no issues found'}`);
+ const sg=segments(buf,q.nb),D=[['pro','Pitch and jitter'],['spec','High-frequency spectrum'],['dyn','Loudness and breath dynamics']];
+ const det=D.map(([k,n])=>{const a=sg.filter(s=>s.f[k]!==null),f=a.filter(s=>s.f[k]).length;return{k,name:n,avail:a.length,flagged:f,status:!a.length?'na':f?'bad':'ok'}});
+ det.forEach(d=>T(d.name,d.avail?`${d.flagged} of ${d.avail} segments flagged`:'not measurable on this audio'));
+ let d=decide(sg,q),flips=0;
+ if(d.v!='Inconclusive'||q.rel!='Low'){const P=[x=>x.map(v=>v*.6),x=>x.map(v=>v+(Math.random()-.5)*.004),x=>x.slice(4000)];
+  P.forEach(p=>{const y=p(buf);if(decide(segments(y,q.nb),quality(y)).v!==d.v)flips++});
+  T('Stability',flips?`verdict changed in ${flips} of 3 perturbed copies`:'verdict held in 3 perturbed copies (quieter, noisier, trimmed)');
+  if(flips&&d.v!='Inconclusive')d={v:'Inconclusive',why:[`The verdict changed in ${flips} of 3 slightly altered copies, so it is not stable enough to trust.`]}}
+ const u=sg.filter(s=>s.st!='na'),partial=d.v=='Suspicious'&&u.some(s=>s.st!='bad');if(partial)d.why.push('Some segments look natural, so only part of the recording may be manipulated.');
+ const c={urgency:$('#c_urgency').checked,money:$('#c_money').checked,newben:$('#c_newben').checked,channel:$('#c_channel').checked},text=$('#tx').value,sc=scan(text);
+ const rk=risk(d.v,partial,c,sc.hits);T('Context',`${rk.rules.filter(r=>r.fired).length} risk rules fired, ${Object.values(sc.hits).flat().length} transcript phrases found`);
+ T('Decision',`voice ${d.v}, risk ${rk.level}`);
+ R={app:'VaakSakshi',id:'VS-'+Date.now().toString(36).toUpperCase(),time:new Date().toISOString(),file:fname,verdict:d.v,why:d.why,quality:{reliability:q.rel,duration_s:+q.dur.toFixed(1),silence_ratio:+q.sil.toFixed(2),clipping:+q.clip.toFixed(4),snr_db:q.snr==null?null:+q.snr.toFixed(1),source_sample_rate:q.sr,notes:q.notes},
+ detectors:det,stability:{perturbed_copies:3,flipped:flips},segments:sg.map(s=>({from_s:s.t0,to_s:s.t1,status:s.st,flags:s.f,measures:s.m})),
+ transcript:{text,matches:sc.hits},context:c,risk:{level:rk.level,points:rk.points,rules:rk.rules},recommended_actions:playbook(d.v,rk),trace:tr,
+ limitations:'Heuristic signal indicators, not a trained deepfake model. Not proof of authenticity or forgery.'};
+ save(R);render(R,sg,sc.html,q);vault()}
+
+/* ---------- render ---------- */
+const chip=(c,t)=>`<span class="chip ${c}">${t}</span>`,VC={'Likely Genuine':'ok',Suspicious:'bad',Inconclusive:'warn'},LC={Low:'ok',Medium:'warn',High:'bad'},RC={High:'ok',Medium:'warn',Low:'bad'};
+const FT={pro:['Unnaturally uniform pitch and almost no jitter','Natural pitch movement and jitter'],spec:['High-frequency cutoff typical of codec or vocoder output','Energy present across the full speech band'],dyn:['Almost constant loudness with no breaths or pauses','Natural pauses and breath-level noise']};
+function render(r,sg,html,q){const o=$('#out');o.hidden=false;
+ o.innerHTML=`<div class="card verdict ${VC[r.verdict]}"><div><div class="lim">Voice verdict</div><h2>${r.verdict}</h2><p>${r.why.map(esc).join(' ')}</p></div>
+ <div class="badges"><div>Fraud-risk level${chip(LC[r.risk.level],r.risk.level)}</div><div>Reliability${chip(RC[r.quality.reliability],r.quality.reliability)}</div><div>Stability${chip(r.stability.flipped?'warn':'ok',r.stability.flipped?'Unstable':'Stable')}</div></div></div>
+ <div class="card"><h3>Where the audio looks suspicious</h3><div class="tl">${sg.map(s=>`<div class="${s.st}" title="${s.t0}-${s.t1} s">${s.t0.toFixed(0)}–${s.t1.toFixed(0)}s</div>`).join('')}</div>
+ <div class="leg">Green: no flags. Amber: one detector flagged. Red: two or more detectors agree. Grey: not enough speech to measure.</div><canvas id="wf" width="1000" height="110"></canvas><canvas id="sp" width="1000" height="220"></canvas></div>
+ <div class="two"><div class="card"><h3>Evidence from three detectors</h3>${r.detectors.map(d=>`<div class="det"><div>${d.avail?FT[d.k][d.flagged?0:1]:'Could not be measured here'}<small>${d.name}: ${d.flagged} of ${d.avail} segments flagged</small></div>${chip(d.status,d.status=='na'?'N/A':d.flagged?'Flagged':'Clean')}</div>`).join('')}
+ <p class="lim" style="margin-top:10px">A segment is red only when two or more detectors agree. One dissenting detector gives caution. Widespread disagreement gives Inconclusive.</p></div>
+ <div class="card"><h3>Audio quality check</h3><table><tr><td>Duration</td><td>${q.dur.toFixed(1)} s</td></tr><tr><td>Silence</td><td>${(q.sil*100).toFixed(0)}%</td></tr><tr><td>Clipping</td><td>${(q.clip*100).toFixed(2)}%</td></tr><tr><td>Noise (SNR)</td><td>${q.snr==null?'n/a':q.snr.toFixed(0)+' dB'}</td></tr><tr><td>Source sample rate</td><td>${q.sr?q.sr+' Hz':'unknown'}</td></tr></table>
+ <p class="lim" style="margin-top:10px">${q.notes.length?'Concerns: '+esc(q.notes.join(', '))+'.':'No quality concerns.'}</p></div></div>
+ <div class="two"><div class="card"><h3>Why the risk is ${r.risk.level}</h3><table>${r.risk.rules.map(x=>`<tr class="${x.fired?'':'off'}"><td>${esc(x.rule)}</td><td>${x.fired?'+'+x.points:'0'}</td></tr>`).join('')}</table><p class="lim" style="margin-top:8px">Low 0–1, Medium 2–4, High 5 or more. Points are rules, not probabilities.</p></div>
+ <div class="card"><h3>What was said</h3><div class="tx">${html||'<span class="lim">No transcript added. Paste one to catch scams even when the voice sounds real.</span>'}</div><div class="hits">${Object.entries(r.transcript.matches).filter(e=>e[1].length).map(([k,v])=>`<span><mark class="m-${k}">${k}</mark> ×${v.length}</span>`).join('')}</div></div></div>
+ <div class="card"><h3>Verify before you pay</h3><ol class="pb">${r.recommended_actions.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><div class="msg" id="msg">${MSG}</div><button class="noprint" id="cp">Copy message for the sender</button></div>
+ <div class="card"><h3>Agent trace</h3><ul class="trace">${r.trace.map((t,i)=>`<li style="animation-delay:${i*.14}s"><b>${t[0]}</b>${esc(t[1])}</li>`).join('')}</ul></div>
+ <div class="card lim"><b style="color:var(--ink)">Limitations.</b> These are signal heuristics, not a trained deepfake model. Noise, phone codecs and short clips can hide or fake the indicators, and a skilled clone may pass. Treat the result as a reason to verify, never as proof.</div>
+ <div class="row noprint" style="margin-bottom:20px"><button id="ej">Download JSON report</button><button id="ep">Save as PDF</button></div>`;
+ $('#cp').onclick=e=>{navigator.clipboard.writeText(MSG);e.target.textContent='Copied'};
+ $('#ej').onclick=()=>dl(r);$('#ep').onclick=()=>window.print();draw(sg);o.scrollIntoView({behavior:'smooth'})}
+const COL={ok:'#3ddc97',warn:'#ffc247',bad:'#ff5d73',na:'#5b6491'},segAt=(sg,t)=>sg.find(s=>t>=s.t0&&t<s.t1)||sg[sg.length-1];
+function draw(sg){const w=$('#wf'),c=w.getContext('2d'),W=1000,H=110,n=buf.length;c.clearRect(0,0,W,H);
+ for(let px=0;px<W;px++){const a=px*n/W|0,b=(px+1)*n/W|0;let mn=0,mx=0;for(let i=a;i<b;i+=4){if(buf[i]<mn)mn=buf[i];if(buf[i]>mx)mx=buf[i]}
+  const pk=Math.max(...[...buf.slice(0,n)].filter((_,i)=>i%997==0).map(Math.abs),.01);c.fillStyle=COL[segAt(sg,a/SR).st];c.fillRect(px,H/2-mx/pk*H/2*.95,1,Math.max(1,(mx-mn)/pk*H/2*.95))}
+ const s=$('#sp'),g=s.getContext('2d'),SW=1000,SH=220,im=g.createImageData(SW,SH),hop=Math.max(64,(n-512)/SW|0);
+ for(let x=0;x<SW;x++){const P=spec(buf,Math.min(x*hop,n-512));for(let y=0;y<SH;y++){const k=Math.floor((SH-1-y)/SH*256),v=Math.max(0,Math.min(1,(10*Math.log10(P[k]+1e-12)+10)/70)),i=(y*SW+x)*4;
+  im.data[i]=255*Math.min(1,v*1.7);im.data[i+1]=255*Math.max(0,v*1.6-.6);im.data[i+2]=255*(v<.5?v*1.5:Math.max(0,1.5-v*1.5));im.data[i+3]=255}}
+ g.putImageData(im,0,0);sg.forEach(q=>{if(q.st=='bad'||q.st=='warn'){const x=q.t0/(n/SR)*SW,w2=(q.t1-q.t0)/(n/SR)*SW;g.fillStyle=q.st=='bad'?'#ff5d7344':'#ffc24733';g.fillRect(x,0,w2,SH);g.strokeStyle=COL[q.st];g.lineWidth=2;g.strokeRect(x+1,1,w2-2,SH-2)}});
+ g.fillStyle='#fff';g.font='13px sans-serif';g.fillText('8 kHz',6,16);g.fillText('0 Hz',6,SH-6)}
+
+/* ---------- export + vault ---------- */
+function dl(r){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(r,null,2)],{type:'application/json'}));a.download=r.id+'.json';a.click()}
+const db=()=>{try{return JSON.parse(localStorage.getItem('vaaksakshi')||'[]')}catch(e){return[]}};
+function save(r){try{const d=db();d.unshift(r);localStorage.setItem('vaaksakshi',JSON.stringify(d.slice(0,50)))}catch(e){}}
+function vault(){const d=db();$('#vl').innerHTML=d.length?d.map((r,i)=>`<div class="vrow"><div><b>${esc(r.id)}</b> · ${esc(r.file)}<br><span class="lim">${new Date(r.time).toLocaleString()}</span></div><div class="row" style="margin:0">${chip(VC[r.verdict],r.verdict)}${chip(LC[r.risk.level],'Risk '+r.risk.level)}<button data-j="${i}">JSON</button><button data-d="${i}">Delete</button></div></div>`).join(''):'<p class="lim">No cases yet. Run an analysis and it will appear here.</p>';
+ document.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>dl(db()[b.dataset.j]));
+ document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=db();x.splice(b.dataset.d,1);localStorage.setItem('vaaksakshi',JSON.stringify(x));vault()})}
+$('#clr').onclick=()=>{localStorage.removeItem('vaaksakshi');vault()};vault();
+</script></body></html>
