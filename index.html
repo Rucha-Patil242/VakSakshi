@@ -73,7 +73,7 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:30px 0 50px}
 <label><input type="checkbox" id="c_money"><span>Money transfer, OTP or credentials requested</span></label>
 <label><input type="checkbox" id="c_newben"><span>New beneficiary or unusual amount</span></label>
 <label><input type="checkbox" id="c_channel"><span>Unexpected channel (voice note, unknown number)</span></label></div>
-<textarea id="tx" placeholder="Filled automatically from your recording. You can also paste or edit it. Hindi, Hinglish and English scam words are understood."></textarea></div></div>
+<textarea id="tx" placeholder="Filled automatically from your recording. You can also paste or edit it. Hindi, Hinglish and English scam words are understood."></textarea><div class="row"><select id="lang" aria-label="Speech language" style="background:var(--c2);color:var(--ink);border:1px solid var(--ln);border-radius:10px;padding:8px 10px;font:600 14px 'Hanken Grotesk'"><option value="">Language: auto-detect</option><option value="english">Language: English</option><option value="hindi">Language: Hindi / Hinglish</option></select><button id="rt" type="button">Transcribe again</button></div><p class="lim" style="margin-top:8px;font-size:12px">Automatic transcripts can contain mistakes. Pick the spoken language, check the text, correct it if needed, then click Analyse voice.</p></div></div>
 <button id="go" disabled>Analyse voice</button><div class="err" id="err" hidden></div></main>
 
 <div id="out" hidden></div>
@@ -186,12 +186,12 @@ const MSG='Hi, I received a voice message asking me to act on a payment. Before 
 async function loadASR(){let m,last;
  for(const u of['https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2','https://esm.sh/@xenova/transformers@2.17.2']){try{m=await import(u);break}catch(e){last=e}}
  if(!m)throw last;m.env.allowLocalModels=false;
- for(const h of['https://huggingface.co/','https://hf-mirror.com/']){try{m.env.remoteHost=h;return await m.pipeline('automatic-speech-recognition','Xenova/whisper-tiny')}catch(e){last=e}}
+ for(const h of['https://huggingface.co/','https://hf-mirror.com/']){try{m.env.remoteHost=h;return await m.pipeline('automatic-speech-recognition','Xenova/whisper-base')}catch(e){last=e}}
  throw last}
 async function transcribe(){if($('#tx').value.trim())return autoTx?'transcript from speech-to-text reused':'transcript supplied by user';
- const b=$('#go');try{b.textContent='Loading speech model (first time only, about 40 MB)…';
+ const b=$('#go');try{b.textContent='Loading speech model (first time only, about 80 MB)…';
  if(!asr)asr=await loadASR();
- b.textContent='Transcribing the recording…';const o=await asr(buf,{chunk_length_s:30}),t=(o.text||'').trim();
+ b.textContent='Transcribing the recording…';const L=$('#lang').value,o=await asr(buf,L?{chunk_length_s:30,task:'transcribe',language:L}:{chunk_length_s:30,task:'transcribe'}),t=(o.text||'').trim();
  $('#tx').value=t;autoTx=true;return t?'Whisper transcribed '+t.split(/\s+/).length+' words':'no speech recognised in the recording'}
  catch(e){console.error(e);const why=location.protocol=='file:'?'Open the site through http://localhost or GitHub Pages, not by double-clicking the file.':'Check your internet connection or try another network.';
  err('Speech-to-text could not load ('+(e.message||e)+'). '+why+' The audio was still analysed; paste the transcript manually to add the scam-word rules.');return'speech-to-text failed: '+(e.message||e)}}
@@ -254,5 +254,5 @@ function save(r){try{const d=db();d.unshift(r);localStorage.setItem('vaaksakshi'
 function vault(){const d=db();$('#vl').innerHTML=d.length?d.map((r,i)=>`<div class="vrow"><div><b>${esc(r.id)}</b> · ${esc(r.file)}<br><span class="lim">${new Date(r.time).toLocaleString()}</span></div><div class="row" style="margin:0">${chip(VC[r.verdict],r.verdict)}${chip(LC[r.risk.level],'Risk '+r.risk.level)}<button data-j="${i}">JSON</button><button data-d="${i}">Delete</button></div></div>`).join(''):'<p class="lim">No cases yet. Run an analysis and it will appear here.</p>';
  document.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>dl(db()[b.dataset.j]));
  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=db();x.splice(b.dataset.d,1);localStorage.setItem('vaaksakshi',JSON.stringify(x));vault()})}
-$('#clr').onclick=()=>{localStorage.removeItem('vaaksakshi');vault()};vault();
+$('#rt').onclick=()=>{$('#tx').value='';autoTx=false;if(buf)$('#go').click()};$('#clr').onclick=()=>{localStorage.removeItem('vaaksakshi');vault()};vault();
 </script></body></html>
